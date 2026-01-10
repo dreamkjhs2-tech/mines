@@ -3,32 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>라플 지뢰찾기</title>
+    <title>라플 지뢰찾기 - 최종 통합본</title>
     <style>
-        body { background-color: #008080; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: 'Tahoma', sans-serif; -webkit-touch-callout: none; user-select: none; touch-action: manipulation; }
-        .window { background-color: #c0c0c0; border: 3px solid; border-color: #ffffff #808080 #808080 #ffffff; padding: 20px; text-align: center; box-shadow: 5px 5px 15px rgba(0,0,0,0.3); min-width: 320px; margin-bottom: 20px; box-sizing: border-box; }
+        /* 1. 기본 스타일 및 시스템 간섭 차단 */
+        body { 
+            background-color: #008080; display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            min-height: 100vh; margin: 0; font-family: 'Tahoma', sans-serif;
+            -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
+            touch-action: manipulation;
+        }
+        .window { 
+            background-color: #c0c0c0; border: 3px solid; border-color: #ffffff #808080 #808080 #ffffff; 
+            padding: 20px; text-align: center; box-shadow: 5px 5px 15px rgba(0,0,0,0.3); min-width: 320px; 
+            margin-bottom: 20px; box-sizing: border-box;
+        }
         .hidden { display: none !important; }
         h1 { font-size: 22px; margin: 0 0 15px 0; color: #000080; }
         h2 { font-size: 18px; margin: 0 0 10px 0; color: #000080; }
-        button { display: block; width: 100%; padding: 10px; margin: 8px 0; background: #c0c0c0; border: 2px solid; border-color: #fff #808080 #808080 #fff; font-weight: bold; cursor: pointer; font-size: 14px; }
+        p { font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+        
+        button { 
+            display: block; width: 100%; padding: 10px; margin: 8px 0; 
+            background: #c0c0c0; border: 2px solid; border-color: #fff #808080 #808080 #fff;
+            font-weight: bold; cursor: pointer; font-size: 14px;
+        }
         button:active { border-color: #808080 #fff #fff #808080; background: #d0d0d0; }
-        #game-board { display: grid; border: 3px inset #ffffff; background-color: #808080; margin: 0 auto; }
-        .cell { width: 32px; height: 32px; background-color: #c0c0c0; border: 3px solid; border-color: #ffffff #808080 #808080 #ffffff; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; font-size: 16px; box-sizing: border-box; }
+
+        /* 게임 보드 */
+        #game-board { display: grid; border: 3px inset #ffffff; background-color: #808080; margin: 0 auto; touch-action: none; }
+        .cell { 
+            width: 32px; height: 32px; background-color: #c0c0c0; border: 3px solid; 
+            border-color: #ffffff #808080 #808080 #ffffff; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: bold; cursor: pointer; font-size: 16px; box-sizing: border-box; 
+        }
         .cell.open { border: 1px solid #7b7b7b; background-color: #bdbdbd; border-width: 0.5px; }
         .n1 { color: blue; } .n2 { color: green; } .n3 { color: red; } .n4 { color: darkblue; }
+        
         #status-bar { display: flex; justify-content: space-between; padding: 5px; background: #c0c0c0; border: 2px inset #fff; margin-bottom: 10px; font-weight: bold; }
         #count-num { font-size: 80px; color: #000080; margin: 10px 0; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; font-size: 13px; }
         th, td { border: 1px solid #808080; padding: 5px; text-align: center; }
-        .ad-banner { width: 90%; max-width: 350px; background: #fff; border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-decoration: none; border: 2px solid #00ce7c; }
+        
+        .ad-banner { 
+            width: 90%; max-width: 350px; background: #fff; border-radius: 12px; padding: 12px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-decoration: none; border: 2px solid #00ce7c; 
+        }
         .ad-text { color: #333; font-size: 13px; font-weight: bold; text-align: left; }
+        .ad-go { background:#00ce7c; color:#fff; padding:5px 10px; border-radius:15px; font-size:12px; font-weight:bold; }
     </style>
 </head>
 <body>
 
     <div id="screen-intro" class="window">
         <h1>추억의 지뢰찾기</h1>
-        <p>고도의 두뇌게임!<br>매일 지뢰찾기 하고 뇌를 깨우세요!</p>
+        <p>고도의 두뇌게임<br>매일 지뢰찾기 하고<br>나의 뇌를 깨우세요!</p>
         <button onclick="showScreen('screen-difficulty')">게임 시작하기</button>
         <button onclick="openRanking()">랭킹보기</button>
     </div>
@@ -58,14 +89,15 @@
 
     <div id="screen-fail" class="window hidden">
         <h1>💥 콰광!</h1>
+        <p>지뢰를 밟았습니다!<br>게임을 다시 시작해야 합니다.</p>
         <button onclick="restartGame()">다시 시작</button>
         <button onclick="showScreen('screen-intro')">게임 종료</button>
     </div>
 
     <div id="screen-success" class="window hidden">
         <h1>🎉 축하합니다!</h1>
-        <p>기록: <span id="final-time">0</span>초</p>
-        <input type="text" id="nickname" placeholder="닉네임 입력" style="padding:10px; width:80%; margin-bottom:10px; text-align: center;">
+        <p>지뢰를 다 찾았어요!<br>나의 기록: <span id="final-time">0</span>초</p>
+        <input type="text" id="nickname" placeholder="닉네임 입력" style="padding:10px; width:80%; margin-bottom:10px; border:2px inset #fff; text-align: center;">
         <button id="save-btn" onclick="saveRecord()">기록 저장</button>
     </div>
 
@@ -85,11 +117,11 @@
 
     <a href="https://m.lifeplanet.co.kr:444/lpds2/insurance/term-life-insurance.dev" target="_blank" class="ad-banner">
         <div class="ad-text">우리가족을 위한 사망준비<br>교보라플 정기보험</div>
-        <div style="background:#00ce7c; color:#fff; padding:5px 10px; border-radius:15px; font-size:12px;">이동</div>
+        <div class="ad-go" style="background:#00ce7c; color:#fff; padding:5px 10px; border-radius:15px; font-size:12px; font-weight:bold;">이동</div>
     </a>
 
 <script>
-    // ★ 본인의 GAS 웹 앱 URL을 여기에 넣으세요
+    // ★ 본인의 GAS URL을 여기에 넣으세요
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwbrf6Jf9gsE-btNXi7WLV8FsIRioETXU7ZV3gKZt_Bqto649RgUV0OOgi8lz1xcW15/exec";
 
     let rows, cols, mines, currentMode, timerInterval, time, boardData, revealedCount, gameOver;
@@ -110,7 +142,10 @@
         rows = r; cols = c; mines = m; currentMode = mode;
         showScreen('screen-countdown');
         let count = 3;
-        const updateUI = (n) => { document.getElementById('count-num').innerText = n; document.getElementById('count-text').innerText = n; };
+        const updateUI = (n) => { 
+            document.getElementById('count-num').innerText = n; 
+            document.getElementById('count-text').innerText = n; 
+        };
         updateUI(count);
         const cdInterval = setInterval(() => {
             count--;
@@ -159,14 +194,14 @@
                 cell.className = 'cell';
                 cell.id = `cell-${i}-${j}`;
                 
-                let touchTimer = null;
+                let timer = null;
                 let longPressed = false;
 
-                // [PC & Mobile 통합 클릭 로직]
+                // 모바일 롱탭 충돌 방지 로직 (수정 완료)
                 cell.addEventListener('touchstart', (e) => {
                     if (gameOver || boardData[i][j].isOpen) return;
                     longPressed = false;
-                    touchTimer = setTimeout(() => {
+                    timer = setTimeout(() => {
                         toggleFlag(cell, i, j);
                         longPressed = true;
                         if (window.navigator.vibrate) window.navigator.vibrate(40);
@@ -174,20 +209,18 @@
                 }, { passive: true });
 
                 cell.addEventListener('touchend', (e) => {
-                    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
-                    if (longPressed) e.preventDefault();
-                    else clickCell(i, j);
+                    if (timer) { clearTimeout(timer); timer = null; }
+                    if (longPressed) {
+                        e.preventDefault(); 
+                    } else {
+                        clickCell(i, j);
+                    }
                 }, false);
 
-                // 마우스 클릭 (PC 대응)
-                cell.onclick = (e) => {
-                    if (!longPressed) clickCell(i, j);
-                };
-
-                cell.oncontextmenu = (e) => {
+                cell.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
-                    toggleFlag(cell, i, j);
-                };
+                    if (e.pointerType === 'mouse') toggleFlag(cell, i, j);
+                });
                 
                 board.appendChild(cell);
             }
@@ -204,10 +237,18 @@
         let data = boardData[x][y];
         const el = document.getElementById(`cell-${x}-${y}`);
         if (el.innerText === '🚩' || data.isOpen) return;
-        if (data.isMine) { gameOver = true; clearInterval(timerInterval); showScreen('screen-fail'); return; }
+
+        if (data.isMine) {
+            // 지뢰 밟았을 때 로직: 실패 화면 노출 (자동재시작 방지)
+            gameOver = true; 
+            clearInterval(timerInterval);
+            showScreen('screen-fail'); 
+            return;
+        }
         reveal(x, y);
         if (revealedCount === (rows * cols) - mines) {
-            gameOver = true; clearInterval(timerInterval);
+            gameOver = true; 
+            clearInterval(timerInterval);
             document.getElementById('final-time').innerText = time;
             showScreen('screen-success');
         }
@@ -233,9 +274,13 @@
         const btn = document.getElementById('save-btn');
         btn.disabled = true; btn.innerText = "저장 중...";
         try {
-            await fetch(GAS_API_URL, { method: "POST", body: JSON.stringify({ uid: uid, nickname: nick, time: time, mode: currentMode }) });
-            alert("저장되었습니다!"); openRanking();
-        } catch (err) { alert("저장 실패"); btn.disabled = false; }
+            await fetch(GAS_API_URL, { 
+                method: "POST", 
+                body: JSON.stringify({ uid: uid, nickname: nick, time: time, mode: currentMode }) 
+            });
+            alert("저장되었습니다!"); 
+            openRanking();
+        } catch (err) { alert("저장 실패"); btn.disabled = false; btn.innerText = "기록 저장"; }
     }
 
     async function loadRankingFromServer(mode) {
@@ -245,7 +290,7 @@
             const res = await fetch(`${GAS_API_URL}?mode=${encodeURIComponent(mode)}`);
             const data = await res.json();
             body.innerHTML = '';
-            if (data.length === 0) body.innerHTML = '<tr><td colspan="3">기록 없음</td></tr>';
+            if (!data || data.length === 0) body.innerHTML = '<tr><td colspan="3">기록 없음</td></tr>';
             else data.forEach((r, i) => { body.innerHTML += `<tr><td>${i+1}</td><td>${r.nick}</td><td>${r.time}초</td></tr>`; });
         } catch (err) { body.innerHTML = '<tr><td colspan="3">데이터 에러</td></tr>'; }
     }
