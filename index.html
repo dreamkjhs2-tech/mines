@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>라플 지뢰찾기 - 최종 통합본</title>
     <style>
+        /* 기본 스타일 및 시스템 간섭 차단 */
         body { 
             background-color: #008080; display: flex; flex-direction: column; justify-content: center; align-items: center; 
             min-height: 100vh; margin: 0; font-family: 'Tahoma', sans-serif;
             -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
-            touch-action: manipulation;
+            touch-action: none; /* 브라우저 기본 제스처 차단 */
         }
         .window { 
             background-color: #c0c0c0; border: 3px solid; border-color: #ffffff #808080 #808080 #ffffff; 
@@ -28,6 +29,7 @@
         }
         button:active { border-color: #808080 #fff #fff #808080; background: #d0d0d0; }
 
+        /* 게임 보드 */
         #game-board { display: grid; border: 3px inset #ffffff; background-color: #808080; margin: 0 auto; touch-action: none; }
         .cell { 
             width: 32px; height: 32px; background-color: #c0c0c0; border: 3px solid; 
@@ -44,15 +46,13 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; font-size: 13px; }
         th, td { border: 1px solid #808080; padding: 5px; text-align: center; }
         
-        /* 하단 광고 배너 */
         .ad-banner { 
             width: 90%; max-width: 350px; background: #fff; border-radius: 12px; padding: 12px; 
             display: flex; justify-content: space-between; align-items: center; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-decoration: none; border: 2px solid #00ce7c;
             position: relative; z-index: 5;
         }
-        /* 게임 오버나 팝업 시 배너 클릭 방지용 클래스 */
-        .ad-disabled { pointer-events: none; opacity: 0.7; }
+        .ad-disabled { pointer-events: none; opacity: 0.6; }
         .ad-text { color: #333; font-size: 13px; font-weight: bold; text-align: left; }
         .ad-go { background:#00ce7c; color:#fff; padding:5px 10px; border-radius:15px; font-size:12px; font-weight:bold; }
     </style>
@@ -123,6 +123,7 @@
     </a>
 
 <script>
+    // ★ 본인의 GAS URL을 여기에 넣으세요
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwbrf6Jf9gsE-btNXi7WLV8FsIRioETXU7ZV3gKZt_Bqto649RgUV0OOgi8lz1xcW15/exec";
 
     let rows, cols, mines, currentMode, timerInterval, time, boardData, revealedCount, gameOver;
@@ -135,11 +136,14 @@
     }
 
     function showScreen(screenId) {
+        // 모든 화면 숨기기
         document.querySelectorAll('.window').forEach(w => w.classList.add('hidden'));
+        
+        // 대상 화면 표시
         const target = document.getElementById(screenId);
         target.classList.remove('hidden');
 
-        // [튕김 방지] 게임 화면이 아닐 때는 광고 배너 클릭을 막음
+        // 게임 화면에서만 광고 클릭 허용 (튕김 방지)
         const ad = document.getElementById('footer-ad');
         if (screenId === 'screen-game') {
             ad.classList.remove('ad-disabled');
@@ -207,6 +211,7 @@
                 let touchTimer = null;
                 let isLong = false;
 
+                // 모바일 터치 이벤트 최적화
                 cell.addEventListener('touchstart', (e) => {
                     if (gameOver || boardData[i][j].isOpen) return;
                     isLong = false;
@@ -219,15 +224,16 @@
 
                 cell.addEventListener('touchend', (e) => {
                     if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
-                    if (isLong) {
-                        e.preventDefault(); 
-                    } else {
-                        // [튕김 방지] 버블링 차단
-                        e.stopPropagation();
+                    
+                    // 핵심: 브라우저의 고스트 클릭 방지
+                    e.preventDefault(); 
+                    
+                    if (!isLong) {
                         clickCell(i, j);
                     }
                 }, false);
 
+                // PC 마우스 우클릭 대응
                 cell.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
                     if (e.pointerType === 'mouse') toggleFlag(cell, i, j);
@@ -247,22 +253,28 @@
         if (gameOver) return;
         let data = boardData[x][y];
         const el = document.getElementById(`cell-${x}-${y}`);
+        
         if (el.innerText === '🚩' || data.isOpen) return;
 
         if (data.isMine) {
             gameOver = true; 
             clearInterval(timerInterval);
-            // 실패 화면 노출 시 광고 클릭 비활성화
+            
+            // 광고 클릭 즉시 차단
             document.getElementById('footer-ad').classList.add('ad-disabled');
-            showScreen('screen-fail'); 
+            
+            // 미세한 지연 후 실패 화면 표시 (고스트 클릭 방지)
+            setTimeout(() => { showScreen('screen-fail'); }, 100);
             return;
         }
+        
         reveal(x, y);
+        
         if (revealedCount === (rows * cols) - mines) {
             gameOver = true; 
             clearInterval(timerInterval);
             document.getElementById('final-time').innerText = time;
-            showScreen('screen-success');
+            setTimeout(() => { showScreen('screen-success'); }, 100);
         }
     }
 
@@ -288,11 +300,12 @@
         try {
             await fetch(GAS_API_URL, { 
                 method: "POST", 
+                mode: "no-cors", // Vercel에서 GAS 호출 시 필수
                 body: JSON.stringify({ uid: uid, nickname: nick, time: time, mode: currentMode }) 
             });
-            alert("저장되었습니다!"); 
+            alert("저장되었습니다! 랭킹을 확인하세요."); 
             openRanking();
-        } catch (err) { alert("저장 실패"); btn.disabled = false; btn.innerText = "기록 저장"; }
+        } catch (err) { alert("저장 중 오류 발생"); btn.disabled = false; btn.innerText = "기록 저장"; }
     }
 
     async function loadRankingFromServer(mode) {
