@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>라플 지뢰찾기 - 최종 통합본</title>
     <style>
-        /* 1. 기본 스타일 및 시스템 간섭 차단 */
         body { 
             background-color: #008080; display: flex; flex-direction: column; justify-content: center; align-items: center; 
             min-height: 100vh; margin: 0; font-family: 'Tahoma', sans-serif;
@@ -15,7 +14,7 @@
         .window { 
             background-color: #c0c0c0; border: 3px solid; border-color: #ffffff #808080 #808080 #ffffff; 
             padding: 20px; text-align: center; box-shadow: 5px 5px 15px rgba(0,0,0,0.3); min-width: 320px; 
-            margin-bottom: 20px; box-sizing: border-box;
+            margin-bottom: 20px; box-sizing: border-box; z-index: 10;
         }
         .hidden { display: none !important; }
         h1 { font-size: 22px; margin: 0 0 15px 0; color: #000080; }
@@ -29,7 +28,6 @@
         }
         button:active { border-color: #808080 #fff #fff #808080; background: #d0d0d0; }
 
-        /* 게임 보드 */
         #game-board { display: grid; border: 3px inset #ffffff; background-color: #808080; margin: 0 auto; touch-action: none; }
         .cell { 
             width: 32px; height: 32px; background-color: #c0c0c0; border: 3px solid; 
@@ -46,11 +44,15 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; font-size: 13px; }
         th, td { border: 1px solid #808080; padding: 5px; text-align: center; }
         
+        /* 하단 광고 배너 */
         .ad-banner { 
             width: 90%; max-width: 350px; background: #fff; border-radius: 12px; padding: 12px; 
             display: flex; justify-content: space-between; align-items: center; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-decoration: none; border: 2px solid #00ce7c; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-decoration: none; border: 2px solid #00ce7c;
+            position: relative; z-index: 5;
         }
+        /* 게임 오버나 팝업 시 배너 클릭 방지용 클래스 */
+        .ad-disabled { pointer-events: none; opacity: 0.7; }
         .ad-text { color: #333; font-size: 13px; font-weight: bold; text-align: left; }
         .ad-go { background:#00ce7c; color:#fff; padding:5px 10px; border-radius:15px; font-size:12px; font-weight:bold; }
     </style>
@@ -68,7 +70,7 @@
         <h1>난이도를 선택하세요</h1>
         <button onclick="prepareGame(9, 9, 10, '쉬움')">쉬움 (9x9)</button>
         <button onclick="prepareGame(12, 12, 20, '보통')">보통 (12x12)</button>
-        <button onclick="prepareGame(12, 16, 35, '어려움')">어려움 (12x16)</button>
+        <button onclick="prepareGame(16, 12, 35, '어려움')">어려움 (12x16)</button>
         <button onclick="showScreen('screen-intro')" style="margin-top: 15px;">뒤로가기</button>
     </div>
 
@@ -89,14 +91,14 @@
 
     <div id="screen-fail" class="window hidden">
         <h1>💥 콰광!</h1>
-        <p>지뢰를 밟았습니다!<br>게임을 다시 시작해야 합니다.</p>
+        <p>지뢰를 밟았습니다!</p>
         <button onclick="restartGame()">다시 시작</button>
         <button onclick="showScreen('screen-intro')">게임 종료</button>
     </div>
 
     <div id="screen-success" class="window hidden">
         <h1>🎉 축하합니다!</h1>
-        <p>지뢰를 다 찾았어요!<br>나의 기록: <span id="final-time">0</span>초</p>
+        <p>기록: <span id="final-time">0</span>초</p>
         <input type="text" id="nickname" placeholder="닉네임 입력" style="padding:10px; width:80%; margin-bottom:10px; border:2px inset #fff; text-align: center;">
         <button id="save-btn" onclick="saveRecord()">기록 저장</button>
     </div>
@@ -115,13 +117,12 @@
         <button onclick="showScreen('screen-intro')" style="margin-top: 15px;">메인으로</button>
     </div>
 
-    <a href="https://m.lifeplanet.co.kr:444/lpds2/insurance/term-life-insurance.dev" target="_blank" class="ad-banner">
+    <a id="footer-ad" href="https://m.lifeplanet.co.kr:444/lpds2/insurance/term-life-insurance.dev" target="_blank" class="ad-banner">
         <div class="ad-text">우리가족을 위한 사망준비<br>교보라플 정기보험</div>
-        <div class="ad-go" style="background:#00ce7c; color:#fff; padding:5px 10px; border-radius:15px; font-size:12px; font-weight:bold;">이동</div>
+        <div class="ad-go">이동</div>
     </a>
 
 <script>
-    // ★ 본인의 GAS URL을 여기에 넣으세요
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwbrf6Jf9gsE-btNXi7WLV8FsIRioETXU7ZV3gKZt_Bqto649RgUV0OOgi8lz1xcW15/exec";
 
     let rows, cols, mines, currentMode, timerInterval, time, boardData, revealedCount, gameOver;
@@ -135,7 +136,16 @@
 
     function showScreen(screenId) {
         document.querySelectorAll('.window').forEach(w => w.classList.add('hidden'));
-        document.getElementById(screenId).classList.remove('hidden');
+        const target = document.getElementById(screenId);
+        target.classList.remove('hidden');
+
+        // [튕김 방지] 게임 화면이 아닐 때는 광고 배너 클릭을 막음
+        const ad = document.getElementById('footer-ad');
+        if (screenId === 'screen-game') {
+            ad.classList.remove('ad-disabled');
+        } else {
+            ad.classList.add('ad-disabled');
+        }
     }
 
     function prepareGame(r, c, m, mode) {
@@ -194,25 +204,26 @@
                 cell.className = 'cell';
                 cell.id = `cell-${i}-${j}`;
                 
-                let timer = null;
-                let longPressed = false;
+                let touchTimer = null;
+                let isLong = false;
 
-                // 모바일 롱탭 충돌 방지 로직 (수정 완료)
                 cell.addEventListener('touchstart', (e) => {
                     if (gameOver || boardData[i][j].isOpen) return;
-                    longPressed = false;
-                    timer = setTimeout(() => {
+                    isLong = false;
+                    touchTimer = setTimeout(() => {
                         toggleFlag(cell, i, j);
-                        longPressed = true;
+                        isLong = true;
                         if (window.navigator.vibrate) window.navigator.vibrate(40);
                     }, 500);
                 }, { passive: true });
 
                 cell.addEventListener('touchend', (e) => {
-                    if (timer) { clearTimeout(timer); timer = null; }
-                    if (longPressed) {
+                    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+                    if (isLong) {
                         e.preventDefault(); 
                     } else {
+                        // [튕김 방지] 버블링 차단
+                        e.stopPropagation();
                         clickCell(i, j);
                     }
                 }, false);
@@ -239,9 +250,10 @@
         if (el.innerText === '🚩' || data.isOpen) return;
 
         if (data.isMine) {
-            // 지뢰 밟았을 때 로직: 실패 화면 노출 (자동재시작 방지)
             gameOver = true; 
             clearInterval(timerInterval);
+            // 실패 화면 노출 시 광고 클릭 비활성화
+            document.getElementById('footer-ad').classList.add('ad-disabled');
             showScreen('screen-fail'); 
             return;
         }
