@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>라플 지뢰찾기 - 두뇌 게임</title>
+    <style>
+        /* 윈도우 클래식 테마 및 모바일 최적화 */
+        body { 
+            background-color: #008080; display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            min-height: 100vh; margin: 0; font-family: 'Tahoma', sans-serif;
+            -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
+            touch-action: manipulation;
+        }
+        .window { 
+            background-color: #c0c0c0; border: 3px solid; border-color: #ffffff #808080 #808080 #ffffff; 
+            padding: 20px; text-align: center; box-shadow: 5px 5px 15px rgba(0,0,0,0.3); min-width: 320px; 
+            margin-bottom: 20px; box-sizing: border-box;
+        }
+        .hidden { display: none !important; }
+        h1 { font-size: 22px; margin: 0 0 15px 0; color: #000080; }
+        h2 { font-size: 18px; margin: 0 0 10px 0; color: #000080; }
+        p { font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+        
+        button { 
+            display: block; width: 100%; padding: 10px; margin: 8px 0; 
+            background: #c0c0c0; border: 2px solid; border-color: #fff #808080 #808080 #fff;
+            font-weight: bold; cursor: pointer; font-size: 14px;
+        }
+        button:active { border-color: #808080 #fff #fff #808080; background: #d0d0d0; }
+
+        #game-board { display: grid; border: 3px inset #ffffff; background-color: #808080; margin: 0 auto; touch-action: none; }
+        .cell { 
+            width: 32px; height: 32px; background-color: #c0c0c0; border: 3px solid; 
+            border-color: #ffffff #808080 #808080 #ffffff; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: bold; cursor: pointer; font-size: 16px; box-sizing: border-box; 
+        }
+        .cell.open { border: 1px solid #7b7b7b; background-color: #bdbdbd; border-width: 0.5px; }
+        .n1 { color: blue; } .n2 { color: green; } .n3 { color: red; } .n4 { color: darkblue; }
+        
+        #status-bar { display: flex; justify-content: space-between; padding: 5px; background: #c0c0c0; border: 2px inset #fff; margin-bottom: 10px; font-weight: bold; }
+        #count-num { font-size: 80px; color: #000080; margin: 10px 0; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; font-size: 13px; }
+        th, td { border: 1px solid #808080; padding: 5px; text-align: center; }
+        
+        .ad-banner { 
+            width: 90%; max-width: 350px; background: #fff; border-radius: 12px; padding: 12px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-decoration: none; border: 2px solid #00ce7c; 
+        }
+        .ad-text { color: #333; font-size: 13px; font-weight: bold; text-align: left; }
+        .ad-go { background:#00ce7c; color:#fff; padding:5px 10px; border-radius:15px; font-size:12px; font-weight:bold; }
+    </style>
+</head>
+<body>
+
+    <div id="screen-intro" class="window">
+        <h1>추억의 지뢰찾기</h1>
+        <p>고도의 두뇌게임<br>매일 지뢰찾기 하고<br>나의 뇌를 깨우세요!</p>
+        <button onclick="showScreen('screen-difficulty')">게임 시작하기</button>
+        <button onclick="openRanking()">랭킹보기</button>
+    </div>
+
+    <div id="screen-difficulty" class="window hidden">
+        <h1>난이도를 선택하세요</h1>
+        <button onclick="prepareGame(9, 9, 10, '쉬움')">쉬움 (9x9)</button>
+        <button onclick="prepareGame(16, 16, 40, '보통')">보통 (16x16)</button>
+        <button onclick="prepareGame(30, 16, 99, '어려움')">어려움 (30x16)</button>
+        <button onclick="showScreen('screen-intro')" style="margin-top: 20px;">뒤로가기</button>
+    </div>
+
+    <div id="screen-countdown" class="window hidden">
+        <h1>준비하세요!</h1>
+        <div id="count-num">3</div>
+        <p> <span id="count-text">3</span>초 뒤에 게임이 시작됩니다.</p>
+    </div>
+
+    <div id="screen-game" class="window hidden">
+        <h2>라플 지뢰찾기</h2>
+        <div id="status-bar">
+            <span>💣 <span id="mine-count">0</span></span>
+            <span>⏱️ <span id="timer">0</span></span>
+        </div>
+        <div id="game-board"></div>
+    </div>
+
+    <div id="screen-fail" class="window hidden">
+        <h1>💥 콰광!</h1>
+        <p>지뢰를 밟았습니다!</p>
+        <button onclick="restartGame()">다시 시작</button>
+        <button onclick="showScreen('screen-intro')">게임 종료</button>
+    </div>
+
+    <div id="screen-success" class="window hidden">
+        <h1>🎉 축하합니다!</h1>
+        <p>기록: <span id="final-time">0</span>초</p>
+        <input type="text" id="nickname" placeholder="닉네임 입력" style="padding:10px; width:80%; margin-bottom:10px; border:2px inset #fff; text-align: center;">
+        <button id="save-btn" onclick="saveRecord()">기록 저장 및 포인트 신청</button>
+    </div>
+
+    <div id="screen-ranking" class="window hidden">
+        <h1>🏆 명예의 전당</h1>
+        <div style="display:flex; gap:5px; margin-bottom:10px;">
+            <button onclick="loadRankingFromServer('쉬움')" style="font-size:12px;">쉬움</button>
+            <button onclick="loadRankingFromServer('보통')" style="font-size:12px;">보통</button>
+            <button onclick="loadRankingFromServer('어려움')" style="font-size:12px;">어려움</button>
+        </div>
+        <table>
+            <thead><tr><th>순위</th><th>닉네임</th><th>기록</th></tr></thead>
+            <tbody id="rank-body"></tbody>
+        </table>
+        <button onclick="showScreen('screen-intro')" style="margin-top: 20px;">메인으로</button>
+    </div>
+
+    <a href="https://m.lifeplanet.co.kr:444/lpds2/insurance/term-life-insurance.dev" target="_blank" class="ad-banner">
+        <div class="ad-text">우리가족을 위한 사망준비<br>교보라플 정기보험</div>
+        <div class="ad-go">이동</div>
+    </a>
+
+<script>
+    // ★ 주의: 여기에 본인의 구글 웹 앱 URL을 넣으세요
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxb4PRL0DOD9nEe-Fg1Ws6U_ssvBdL_t0w4r5Wc846EtuNFtkg9PHiYht4IKPWILFnC/exec";
+
+    let rows, cols, mines, currentMode, timerInterval, time, boardData, revealedCount, gameOver;
+
+    function getCookie(name) {
+        let value = "; " + document.cookie;
+        let parts = value.split("; " + name + "=");
+        if (parts.length === 2) return parts.pop().split(";").shift();
+        return "GUEST_USER"; 
+    }
+
+    function showScreen(screenId) {
+        document.querySelectorAll('.window').forEach(w => w.classList.add('hidden'));
+        document.getElementById(screenId).classList.remove('hidden');
+    }
+
+    function prepareGame(r, c, m, mode) {
+        rows = r; cols = c; mines = m; currentMode = mode;
+        showScreen('screen-countdown');
+        let count = 3;
+        const updateUI = (n) => { document.getElementById('count-num').innerText = n; document.getElementById('count-text').innerText = n; };
+        updateUI(count);
+        const cdInterval = setInterval(() => {
+            count--;
+            if (count > 0) updateUI(count);
+            else { clearInterval(cdInterval); startGame(); }
+        }, 1000);
+    }
+
+    function startGame() {
+        showScreen('screen-game');
+        gameOver = false; revealedCount = 0; time = 0;
+        document.getElementById('timer').innerText = 0;
+        document.getElementById('mine-count').innerText = mines;
+        createBoard();
+        startTimer();
+    }
+
+    function createBoard() {
+        const board = document.getElementById('game-board');
+        board.style.gridTemplateColumns = `repeat(${cols}, 32px)`;
+        board.innerHTML = '';
+        boardData = Array.from({ length: rows }, () => Array.from({ length: cols }, () => ({ isMine: false, isOpen: false, count: 0 })));
+        
+        let planted = 0;
+        while (planted < mines) {
+            let rx = Math.floor(Math.random() * rows), ry = Math.floor(Math.random() * cols);
+            if (!boardData[rx][ry].isMine) { boardData[rx][ry].isMine = true; planted++; }
+        }
+
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                if (boardData[i][j].isMine) continue;
+                let cnt = 0;
+                for (let x = -1; x <= 1; x++) {
+                    for (let y = -1; y <= 1; y++) {
+                        if (boardData[i+x] && boardData[i+x][j+y] && boardData[i+x][j+y].isMine) cnt++;
+                    }
+                }
+                boardData[i][j].count = cnt;
+            }
+        }
+
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `cell-${i}-${j}`;
+                
+                let touchTimer = null;
+                let longPressed = false;
+
+                cell.addEventListener('touchstart', (e) => {
+                    if (gameOver || boardData[i][j].isOpen) return;
+                    longPressed = false;
+                    touchTimer = setTimeout(() => {
+                        toggleFlag(cell, i, j);
+                        longPressed = true;
+                        if (window.navigator.vibrate) window.navigator.vibrate(40);
+                    }, 500);
+                }, { passive: true });
+
+                cell.addEventListener('touchmove', () => { if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; } }, { passive: true });
+
+                cell.addEventListener('touchend', (e) => {
+                    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+                    if (longPressed) { e.preventDefault(); } else { clickCell(i, j); }
+                }, false);
+
+                cell.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    if (e.pointerType === 'mouse') toggleFlag(cell, i, j);
+                });
+                
+                board.appendChild(cell);
+            }
+        }
+    }
+
+    function toggleFlag(el, x, y) {
+        if (gameOver || boardData[x][y].isOpen) return;
+        el.innerText = el.innerText === '🚩' ? '' : '🚩';
+    }
+
+    function clickCell(x, y) {
+        if (gameOver) return;
+        let data = boardData[x][y];
+        const el = document.getElementById(`cell-${x}-${y}`);
+        if (el.innerText === '🚩' || data.isOpen) return;
+        if (data.isMine) { gameOver = true; clearInterval(timerInterval); showScreen('screen-fail'); return; }
+        reveal(x, y);
+        if (revealedCount === (rows * cols) - mines) {
+            gameOver = true; clearInterval(timerInterval);
+            document.getElementById('final-time').innerText = time;
+            showScreen('screen-success');
+        }
+    }
+
+    function reveal(x, y) {
+        if (!boardData[x] || !boardData[x][y] || boardData[x][y].isOpen) return;
+        const el = document.getElementById(`cell-${x}-${y}`);
+        if (el.innerText === '🚩') return;
+        let data = boardData[x][y];
+        data.isOpen = true; revealedCount++;
+        el.classList.add('open');
+        if (data.count > 0) { el.innerText = data.count; el.classList.add('n' + data.count); }
+        else { for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) reveal(x + i, y + j); }
+    }
+
+    function startTimer() { timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000); }
+    function restartGame() { prepareGame(rows, cols, mines, currentMode); }
+
+    // [Vercel 전용: 서버 저장 함수]
+    async function saveRecord() {
+        const nick = document.getElementById('nickname').value || "익명";
+        const uid = getCookie('UID');
+        const btn = document.getElementById('save-btn');
+        btn.disabled = true; btn.innerText = "전송 중...";
+
+        const payload = { uid: uid, nickname: nick, time: time, mode: currentMode };
+
+        try {
+            await fetch(GAS_API_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+            alert("기록이 성공적으로 저장되었습니다!");
+            openRanking();
+        } catch (err) {
+            alert("저장 실패: 서버 연결을 확인하세요.");
+            btn.disabled = false;
+            btn.innerText = "기록 저장 및 포인트 신청";
+        }
+    }
+
+    // [Vercel 전용: 서버 랭킹 불러오기 함수]
+    async function loadRankingFromServer(mode) {
+        const body = document.getElementById('rank-body');
+        body.innerHTML = '<tr><td colspan="3">불러오는 중...</td></tr>';
+
+        try {
+            const res = await fetch(`${GAS_API_URL}?mode=${encodeURIComponent(mode)}`);
+            const data = await res.json();
+            body.innerHTML = '';
+            if (data.length === 0) body.innerHTML = '<tr><td colspan="3">기록이 없습니다.</td></tr>';
+            else data.forEach((r, i) => { body.innerHTML += `<tr><td>${i+1}</td><td>${r.nick}</td><td>${r.time}초</td></tr>`; });
+        } catch (err) {
+            body.innerHTML = '<tr><td colspan="3">데이터를 가져오지 못했습니다.</td></tr>';
+        }
+    }
+
+    function openRanking() { showScreen('screen-ranking'); loadRankingFromServer(currentMode || '쉬움'); }
+</script>
+</body>
+</html>
