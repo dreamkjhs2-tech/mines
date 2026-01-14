@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>라플 지뢰찾기 - 스토리 배너 통합본</title>
+    <title>라플 지뢰찾기 - 정밀 기록 버전</title>
     <style>
         /* 기본 스타일 및 시스템 간섭 차단 */
         body { 
@@ -12,11 +12,14 @@
             -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
             touch-action: none; 
         }
+        
         .window { 
             background-color: #c0c0c0; border: 3px solid; border-color: #ffffff #808080 #808080 #ffffff; 
-            padding: 20px; text-align: center; box-shadow: 5px 5px 15px rgba(0,0,0,0.3); min-width: 320px; 
+            padding: 20px; text-align: center; box-shadow: 5px 5px 15px rgba(0,0,0,0.3); 
+            width: 320px;
             margin-bottom: 20px; box-sizing: border-box; z-index: 10;
         }
+        
         .hidden { display: none !important; }
         h1 { font-size: 20px; margin: 0 0 15px 0; color: #000080; }
         h2 { font-size: 18px; margin: 0 0 10px 0; color: #000080; }
@@ -29,7 +32,11 @@
         }
         button:active { border-color: #808080 #fff #fff #808080; background: #d0d0d0; }
 
-        /* 게임 보드 */
+        .tip-box {
+            background: #f0f0f0; border: 1px solid #808080; padding: 12px; 
+            margin-bottom: 20px; text-align: left; font-size: 13px; line-height: 1.5;
+        }
+
         #game-board { display: grid; border: 3px inset #ffffff; background-color: #808080; margin: 0 auto; touch-action: none; }
         .cell { 
             width: 32px; height: 32px; background-color: #c0c0c0; border: 3px solid; 
@@ -46,26 +53,38 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; font-size: 13px; }
         th, td { border: 1px solid #808080; padding: 5px; text-align: center; }
         
-        /* [신규] 롤링 스토리 배너 스타일 */
         .ad-banner { 
-            width: 90%; max-width: 350px; background: #ffffff; border-radius: 12px; padding: 15px; 
+            width: 320px;
+            background: #ffffff; border-radius: 12px; padding: 0 15px; 
             display: flex; justify-content: space-between; align-items: center; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-decoration: none; border: 2.5px solid #00ce7c;
-            position: relative; z-index: 5; height: 50px; overflow: hidden;
+            position: relative; z-index: 5; height: 60px;
+            overflow: hidden; box-sizing: border-box;
         }
+        
         .ad-content { flex: 1; position: relative; height: 100%; overflow: hidden; }
-        .ad-text-box {
-            position: absolute; width: 100%; height: 100%; display: flex; align-items: center;
-            font-size: 14px; font-weight: bold; color: #333; text-align: left;
-            transition: transform 0.6s ease-in-out, opacity 0.6s;
+
+        .ad-rolling-wrapper {
+            position: absolute;
+            width: 100%;
+            top: 0;
+            transition: top 0.6s cubic-bezier(0.45, 0.05, 0.55, 0.95);
         }
-        /* 페이드인/아웃 애니메이션 */
-        .ad-text-box.fade-out { opacity: 0; transform: translateY(-20px); }
-        .ad-text-box.fade-in { opacity: 1; transform: translateY(0); }
+
+        .ad-text-item {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            font-size: 17px; 
+            font-weight: bold; 
+            color: #333; 
+            text-align: left;
+            white-space: nowrap;
+        }
         
         .ad-go { 
             background:#00ce7c; color:#fff; padding:6px 12px; border-radius:15px; 
-            font-size: 12px; font-weight:bold; white-space: nowrap; margin-left: 10px;
+            font-size: 12px; font-weight:bold; white-space: nowrap; margin-left: 5px;
         }
     </style>
 </head>
@@ -93,6 +112,10 @@
     <div id="screen-tutorial-3" class="window hidden">
         <h1>🏆 미션 성공 (3/3)</h1>
         <p>지뢰를 밟지 않고<br>모든 안전한 칸을 찾아내면 성공!<br><br>빠르게 성공할수록<br>높은 명예의 전당에 오릅니다.</p>
+        <div class="tip-box">
+            <b>💡 지뢰찾기 TIP:</b><br>
+            가장 끝 <b>모서리</b>부터 시작해 보세요! 구석에서 시작하면 지뢰를 피할 확률이 훨씬 높아집니다.
+        </div>
         <button onclick="showScreen('screen-difficulty')">난이도 선택하기</button>
     </div>
 
@@ -114,7 +137,7 @@
         <h2>라플 지뢰찾기</h2>
         <div id="status-bar">
             <span>💣 <span id="mine-count">0</span></span>
-            <span>⏱️ <span id="timer">0</span></span>
+            <span>⏱️ <span id="timer">0.00</span></span>
         </div>
         <div id="game-board"></div>
     </div>
@@ -128,7 +151,7 @@
 
     <div id="screen-success" class="window hidden">
         <h1>🎉 축하합니다!</h1>
-        <p>기록: <span id="final-time">0</span>초</p>
+        <p>기록: <span id="final-time">0.00</span>초</p>
         <input type="text" id="nickname" placeholder="닉네임 입력" style="padding:10px; width:80%; margin-bottom:10px; border:2px inset #fff; text-align: center;">
         <button id="save-btn" onclick="saveRecord()">기록 저장</button>
     </div>
@@ -149,39 +172,40 @@
 
     <a id="footer-ad" href="https://m.lifeplanet.co.kr:444/lpds2/insurance/term-life-insurance.dev" target="_blank" class="ad-banner">
         <div class="ad-content">
-            <div id="ad-rolling-text" class="ad-text-box fade-in">가족을 위한 정기보험</div>
+            <div id="ad-wrapper" class="ad-rolling-wrapper">
+                <div class="ad-text-item">가족을 위한 정기보험</div>
+                <div class="ad-text-item">내 인생에 있을지 모르는 지뢰들</div>
+                <div class="ad-text-item">가족을 위해 미리 준비</div>
+                <div class="ad-text-item">교보라플 정기보험으로 !</div>
+                <div class="ad-text-item">가족을 위한 정기보험</div>
+            </div>
         </div>
-        <div class="ad-go">보러가기</div>
+        <div class="ad-go">이동</div>
     </a>
 
 <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwbrf6Jf9gsE-btNXi7WLV8FsIRioETXU7ZV3gKZt_Bqto649RgUV0OOgi8lz1xcW15/exec";
 
-    let rows, cols, mines, currentMode, timerInterval, time, boardData, revealedCount, gameOver;
+    let rows, cols, mines, currentMode, timerInterval, time, boardData, revealedCount, gameOver, startTime;
 
-    // 광고 메시지 배열
-    const adMessages = [
-        "가족을 위한 정기보험",
-        "내 인생에 있을지 모르는 지뢰들",
-        "가족을 위해 미리 준비",
-        "교보라플 정기보험으로 !"
-    ];
-    let adIndex = 0;
+    let currentAdSlide = 0;
+    const totalAdSlides = 4;
 
-    // [신규] 광고 롤링 로직 (4초 간격)
     function startAdRolling() {
-        const textEl = document.getElementById('ad-rolling-text');
+        const wrapper = document.getElementById('ad-wrapper');
+        const slideHeight = 60;
         setInterval(() => {
-            textEl.classList.remove('fade-in');
-            textEl.classList.add('fade-out');
-            
-            setTimeout(() => {
-                adIndex = (adIndex + 1) % adMessages.length;
-                textEl.innerText = adMessages[adIndex];
-                textEl.classList.remove('fade-out');
-                textEl.classList.add('fade-in');
-            }, 600); // 페이드 아웃 시간
-        }, 4000); // 4초 대기
+            currentAdSlide++;
+            wrapper.style.transition = "top 0.6s cubic-bezier(0.45, 0.05, 0.55, 0.95)";
+            wrapper.style.top = `-${currentAdSlide * slideHeight}px`;
+            if (currentAdSlide === totalAdSlides) {
+                setTimeout(() => {
+                    wrapper.style.transition = "none";
+                    currentAdSlide = 0;
+                    wrapper.style.top = "0px";
+                }, 600);
+            }
+        }, 4000);
     }
 
     function getCookie(name) {
@@ -194,8 +218,6 @@
     function showScreen(screenId) {
         document.querySelectorAll('.window').forEach(w => w.classList.add('hidden'));
         document.getElementById(screenId).classList.remove('hidden');
-
-        // [오류 수정] 모든 화면에서 배너가 클릭 가능하도록 복구
         const ad = document.getElementById('footer-ad');
         ad.style.pointerEvents = "auto";
         ad.style.opacity = "1";
@@ -220,7 +242,7 @@
     function startGame() {
         showScreen('screen-game');
         gameOver = false; revealedCount = 0; time = 0;
-        document.getElementById('timer').innerText = 0;
+        document.getElementById('timer').innerText = "0.00";
         document.getElementById('mine-count').innerText = mines;
         createBoard();
         startTimer();
@@ -256,10 +278,8 @@
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 cell.id = `cell-${i}-${j}`;
-                
                 let touchTimer = null;
                 let isLong = false;
-
                 cell.addEventListener('touchstart', (e) => {
                     if (gameOver || boardData[i][j].isOpen) return;
                     isLong = false;
@@ -269,20 +289,15 @@
                         if (window.navigator.vibrate) window.navigator.vibrate(40);
                     }, 500);
                 }, { passive: true });
-
                 cell.addEventListener('touchend', (e) => {
                     if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
                     e.preventDefault(); 
-                    if (!isLong) {
-                        clickCell(i, j);
-                    }
+                    if (!isLong) clickCell(i, j);
                 }, false);
-
                 cell.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
                     if (e.pointerType === 'mouse') toggleFlag(cell, i, j);
                 });
-                
                 board.appendChild(cell);
             }
         }
@@ -298,19 +313,15 @@
         let data = boardData[x][y];
         const el = document.getElementById(`cell-${x}-${y}`);
         if (el.innerText === '🚩' || data.isOpen) return;
-
         if (data.isMine) {
-            gameOver = true; 
-            clearInterval(timerInterval);
-            // 실패 화면 노출 시에도 배너 클릭 유지
+            gameOver = true; clearInterval(timerInterval);
             setTimeout(() => { showScreen('screen-fail'); }, 100);
             return;
         }
         reveal(x, y);
         if (revealedCount === (rows * cols) - mines) {
-            gameOver = true; 
-            clearInterval(timerInterval);
-            document.getElementById('final-time').innerText = time;
+            gameOver = true; clearInterval(timerInterval);
+            document.getElementById('final-time').innerText = time.toFixed(2);
             setTimeout(() => { showScreen('screen-success'); }, 100);
         }
     }
@@ -326,7 +337,15 @@
         else { for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) reveal(x + i, y + j); }
     }
 
-    function startTimer() { timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000); }
+    // [수정] 정밀 타이머 로직 (소수점 2자리)
+    function startTimer() { 
+        startTime = Date.now();
+        timerInterval = setInterval(() => { 
+            time = (Date.now() - startTime) / 1000; 
+            document.getElementById('timer').innerText = time.toFixed(2); 
+        }, 10); 
+    }
+    
     function restartGame() { prepareGame(rows, cols, mines, currentMode); }
 
     async function saveRecord() {
@@ -338,10 +357,9 @@
             await fetch(GAS_API_URL, { 
                 method: "POST", 
                 mode: "no-cors", 
-                body: JSON.stringify({ uid: uid, nickname: nick, time: time, mode: currentMode }) 
+                body: JSON.stringify({ uid: uid, nickname: nick, time: time.toFixed(2), mode: currentMode }) 
             });
-            alert("저장되었습니다! 랭킹을 확인하세요."); 
-            openRanking();
+            alert("저장되었습니다! 랭킹을 확인하세요."); openRanking();
         } catch (err) { alert("저장 중 오류 발생"); btn.disabled = false; btn.innerText = "기록 저장"; }
     }
 
@@ -353,14 +371,19 @@
             const data = await res.json();
             body.innerHTML = '';
             if (!data || data.length === 0) body.innerHTML = '<tr><td colspan="3">기록 없음</td></tr>';
-            else data.forEach((r, i) => { body.innerHTML += `<tr><td>${i+1}</td><td>${r.nick}</td><td>${r.time}초</td></tr>`; });
+            else data.forEach((r, i) => { 
+                // [수정] 랭킹 리스트도 소수점 2자리까지 표시
+                const formattedTime = parseFloat(r.time).toFixed(2);
+                body.innerHTML += `<tr><td>${i+1}</td><td>${r.nick}</td><td>${formattedTime}초</td></tr>`; 
+            });
         } catch (err) { body.innerHTML = '<tr><td colspan="3">데이터 에러</td></tr>'; }
     }
 
     function openRanking() { showScreen('screen-ranking'); loadRankingFromServer(currentMode || '쉬움'); }
-
-    // 페이지 로드 시 광고 롤링 시작
-    window.onload = startAdRolling;
+    
+    window.onload = function() {
+        startAdRolling();
+    };
 </script>
 </body>
 </html>
