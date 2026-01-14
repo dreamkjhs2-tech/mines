@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>라플 지뢰찾기 - 정밀 기록 버전</title>
+    <title>라플 지뢰찾기 - UI 최적화 버전</title>
     <style>
         /* 기본 스타일 및 시스템 간섭 차단 */
         body { 
@@ -13,10 +13,13 @@
             touch-action: none; 
         }
         
+        /* [수정] 창 크기를 가변형(fit-content)으로 변경하고 모바일 대응을 위해 배율 조정 */
         .window { 
             background-color: #c0c0c0; border: 3px solid; border-color: #ffffff #808080 #808080 #ffffff; 
             padding: 20px; text-align: center; box-shadow: 5px 5px 15px rgba(0,0,0,0.3); 
-            width: 320px;
+            width: fit-content; /* 내부 콘텐츠에 맞게 자동 조절 */
+            min-width: 320px;
+            max-width: 95vw; /* 화면 밖으로 나가지 않도록 제한 */
             margin-bottom: 20px; box-sizing: border-box; z-index: 10;
         }
         
@@ -37,7 +40,14 @@
             margin-bottom: 20px; text-align: left; font-size: 13px; line-height: 1.5;
         }
 
-        #game-board { display: grid; border: 3px inset #ffffff; background-color: #808080; margin: 0 auto; touch-action: none; }
+        /* [수정] 게임 보드가 넘치지 않도록 scale 적용 가능하게 설정 */
+        #game-board { 
+            display: grid; border: 3px inset #ffffff; background-color: #808080; margin: 0 auto; 
+            touch-action: none; 
+            max-width: 100%; /* 부모 너비를 넘지 않음 */
+            overflow: visible;
+        }
+        
         .cell { 
             width: 32px; height: 32px; background-color: #c0c0c0; border: 3px solid; 
             border-color: #ffffff #808080 #808080 #ffffff; 
@@ -53,39 +63,22 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; font-size: 13px; }
         th, td { border: 1px solid #808080; padding: 5px; text-align: center; }
         
+        /* [수정] 롤링 스토리 광고 배너 - 창 크기에 맞춰 유동적으로 조절 */
         .ad-banner { 
-            width: 320px;
+            width: 100%; /* 부모(body)의 중앙 정렬 하에 배치 */
+            max-width: 420px; /* 보통/어려움 모드 창 크기에 맞춰 최대치 확장 */
+            min-width: 320px;
             background: #ffffff; border-radius: 12px; padding: 0 15px; 
             display: flex; justify-content: space-between; align-items: center; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-decoration: none; border: 2.5px solid #00ce7c;
-            position: relative; z-index: 5; height: 60px;
+            position: relative; z-index: 5; height: 73px;
             overflow: hidden; box-sizing: border-box;
         }
         
         .ad-content { flex: 1; position: relative; height: 100%; overflow: hidden; }
-
-        .ad-rolling-wrapper {
-            position: absolute;
-            width: 100%;
-            top: 0;
-            transition: top 0.6s cubic-bezier(0.45, 0.05, 0.55, 0.95);
-        }
-
-        .ad-text-item {
-            height: 60px;
-            display: flex;
-            align-items: center;
-            font-size: 17px; 
-            font-weight: bold; 
-            color: #333; 
-            text-align: left;
-            white-space: nowrap;
-        }
-        
-        .ad-go { 
-            background:#00ce7c; color:#fff; padding:6px 12px; border-radius:15px; 
-            font-size: 12px; font-weight:bold; white-space: nowrap; margin-left: 5px;
-        }
+        .ad-rolling-wrapper { position: absolute; width: 100%; top: 0; transition: top 0.6s cubic-bezier(0.45, 0.05, 0.55, 0.95); }
+        .ad-text-item { height: 73px; display: flex; align-items: center; font-size: 17px; font-weight: bold; color: #333; text-align: left; white-space: nowrap; }
+        .ad-go { background:#00ce7c; color:#fff; padding:6px 12px; border-radius:15px; font-size: 12px; font-weight:bold; white-space: nowrap; margin-left: 5px; }
     </style>
 </head>
 <body>
@@ -99,22 +92,19 @@
 
     <div id="screen-tutorial-1" class="window hidden">
         <h1>🎮 게임 규칙 (1/3)</h1>
-        <p>숨겨진 지뢰를 피해<br>모든 안전한 칸을 열어야 합니다.<br><br>칸의 <b>숫자</b>는 주변 8개 칸에 있는<br>지뢰의 총 개수를 의미합니다.</p>
+        <p>숨겨진 지뢰를 피해 모든 안전한 칸을 열어야 합니다.<br>칸의 <b>숫자</b>는 주변 8개 칸에 있는 지뢰의 총 개수를 의미합니다.</p>
         <button onclick="showScreen('screen-tutorial-2')">다음으로</button>
     </div>
-
     <div id="screen-tutorial-2" class="window hidden">
         <h1>🕹️ 조작 방법 (2/3)</h1>
-        <p><b>[칸 열기]</b><br>칸을 가볍게 한 번 터치하세요.<br><br><b>[깃발 꽂기]</b><br>지뢰가 확실한 곳은<br>칸을 <b>꾹~ 길게</b> 눌러주세요.</p>
+        <p><b>[칸 열기]</b> 터치<br><b>[깃발 꽂기]</b> 길게 누르기</p>
         <button onclick="showScreen('screen-tutorial-3')">다음으로</button>
     </div>
-
     <div id="screen-tutorial-3" class="window hidden">
         <h1>🏆 미션 성공 (3/3)</h1>
-        <p>지뢰를 밟지 않고<br>모든 안전한 칸을 찾아내면 성공!<br><br>빠르게 성공할수록<br>높은 명예의 전당에 오릅니다.</p>
         <div class="tip-box">
             <b>💡 지뢰찾기 TIP:</b><br>
-            가장 끝 <b>모서리</b>부터 시작해 보세요! 구석에서 시작하면 지뢰를 피할 확률이 훨씬 높아집니다.
+            가장 끝 <b>모서리</b>부터 시작해 보세요!
         </div>
         <button onclick="showScreen('screen-difficulty')">난이도 선택하기</button>
     </div>
@@ -139,12 +129,13 @@
             <span>💣 <span id="mine-count">0</span></span>
             <span>⏱️ <span id="timer">0.00</span></span>
         </div>
-        <div id="game-board"></div>
+        <div id="game-board-container">
+            <div id="game-board"></div>
+        </div>
     </div>
 
     <div id="screen-fail" class="window hidden">
         <h1>💥 콰광!</h1>
-        <p>지뢰를 밟았습니다!</p>
         <button onclick="restartGame()">다시 시작</button>
         <button onclick="showScreen('screen-intro')">게임 종료</button>
     </div>
@@ -158,11 +149,6 @@
 
     <div id="screen-ranking" class="window hidden">
         <h1>🏆 명예의 전당</h1>
-        <div style="display:flex; gap:5px; margin-bottom:10px;">
-            <button onclick="loadRankingFromServer('쉬움')" style="font-size:11px;">쉬움</button>
-            <button onclick="loadRankingFromServer('보통')" style="font-size:11px;">보통</button>
-            <button onclick="loadRankingFromServer('어려움')" style="font-size:11px;">어려움</button>
-        </div>
         <table>
             <thead><tr><th>순위</th><th>닉네임</th><th>기록</th></tr></thead>
             <tbody id="rank-body"></tbody>
@@ -176,7 +162,6 @@
                 <div class="ad-text-item">가족을 위한 정기보험</div>
                 <div class="ad-text-item">내 인생에 있을지 모르는 지뢰들</div>
                 <div class="ad-text-item">가족을 위해 미리 준비</div>
-                <div class="ad-text-item">교보라플 정기보험으로 !</div>
                 <div class="ad-text-item">가족을 위한 정기보험</div>
             </div>
         </div>
@@ -185,15 +170,14 @@
 
 <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwbrf6Jf9gsE-btNXi7WLV8FsIRioETXU7ZV3gKZt_Bqto649RgUV0OOgi8lz1xcW15/exec";
-
     let rows, cols, mines, currentMode, timerInterval, time, boardData, revealedCount, gameOver, startTime;
 
     let currentAdSlide = 0;
-    const totalAdSlides = 4;
+    const totalAdSlides = 3;
 
     function startAdRolling() {
         const wrapper = document.getElementById('ad-wrapper');
-        const slideHeight = 60;
+        const slideHeight = 73; 
         setInterval(() => {
             currentAdSlide++;
             wrapper.style.transition = "top 0.6s cubic-bezier(0.45, 0.05, 0.55, 0.95)";
@@ -205,22 +189,29 @@
                     wrapper.style.top = "0px";
                 }, 600);
             }
-        }, 4000);
-    }
-
-    function getCookie(name) {
-        let value = "; " + document.cookie;
-        let parts = value.split("; " + name + "=");
-        if (parts.length === 2) return parts.pop().split(";").shift();
-        return "GUEST_USER"; 
+        }, 3000); 
     }
 
     function showScreen(screenId) {
-        document.querySelectorAll('.window').forEach(w => w.classList.add('hidden'));
-        document.getElementById(screenId).classList.remove('hidden');
-        const ad = document.getElementById('footer-ad');
-        ad.style.pointerEvents = "auto";
-        ad.style.opacity = "1";
+        document.querySelectorAll('.window').forEach(w => {
+            w.classList.add('hidden');
+            w.style.transform = "scale(1)"; // 초기화
+        });
+        const target = document.getElementById(screenId);
+        target.classList.remove('hidden');
+
+        if (screenId === 'screen-success') {
+            document.getElementById('nickname').value = ""; 
+            const btn = document.getElementById('save-btn');
+            btn.disabled = false; 
+            btn.innerText = "기록 저장"; 
+        }
+
+        // [수정] 광고 배너 너비를 현재 활성화된 윈도우 너비와 동기화
+        setTimeout(() => {
+            const currentWinWidth = target.offsetWidth;
+            document.getElementById('footer-ad').style.width = currentWinWidth + "px";
+        }, 50);
     }
 
     function prepareGame(r, c, m, mode) {
@@ -245,7 +236,25 @@
         document.getElementById('timer').innerText = "0.00";
         document.getElementById('mine-count').innerText = mines;
         createBoard();
+        adjustScale(); // [신규] 화면 크기에 맞춰 배율 조정
         startTimer();
+    }
+
+    // [신규] 판이 화면을 넘어갈 경우 전체 윈도우를 축소하는 로직
+    function adjustScale() {
+        const win = document.getElementById('screen-game');
+        const board = document.getElementById('game-board');
+        const padding = 40; 
+        const availableWidth = window.innerWidth * 0.95;
+        const boardWidth = cols * 32 + padding;
+
+        if (boardWidth > availableWidth) {
+            const scale = availableWidth / boardWidth;
+            win.style.transform = `scale(${scale})`;
+            win.style.transformOrigin = "top center";
+        } else {
+            win.style.transform = "scale(1)";
+        }
     }
 
     function createBoard() {
@@ -294,30 +303,20 @@
                     e.preventDefault(); 
                     if (!isLong) clickCell(i, j);
                 }, false);
-                cell.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    if (e.pointerType === 'mouse') toggleFlag(cell, i, j);
-                });
+                cell.addEventListener('contextmenu', (e) => { e.preventDefault(); if (e.pointerType === 'mouse') toggleFlag(cell, i, j); });
                 board.appendChild(cell);
             }
         }
     }
 
-    function toggleFlag(el, x, y) {
-        if (gameOver || boardData[x][y].isOpen) return;
-        el.innerText = el.innerText === '🚩' ? '' : '🚩';
-    }
+    function toggleFlag(el, x, y) { if (gameOver || boardData[x][y].isOpen) return; el.innerText = el.innerText === '🚩' ? '' : '🚩'; }
 
     function clickCell(x, y) {
         if (gameOver) return;
         let data = boardData[x][y];
         const el = document.getElementById(`cell-${x}-${y}`);
         if (el.innerText === '🚩' || data.isOpen) return;
-        if (data.isMine) {
-            gameOver = true; clearInterval(timerInterval);
-            setTimeout(() => { showScreen('screen-fail'); }, 100);
-            return;
-        }
+        if (data.isMine) { gameOver = true; clearInterval(timerInterval); setTimeout(() => { showScreen('screen-fail'); }, 100); return; }
         reveal(x, y);
         if (revealedCount === (rows * cols) - mines) {
             gameOver = true; clearInterval(timerInterval);
@@ -337,28 +336,15 @@
         else { for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) reveal(x + i, y + j); }
     }
 
-    // [수정] 정밀 타이머 로직 (소수점 2자리)
-    function startTimer() { 
-        startTime = Date.now();
-        timerInterval = setInterval(() => { 
-            time = (Date.now() - startTime) / 1000; 
-            document.getElementById('timer').innerText = time.toFixed(2); 
-        }, 10); 
-    }
-    
+    function startTimer() { startTime = Date.now(); timerInterval = setInterval(() => { time = (Date.now() - startTime) / 1000; document.getElementById('timer').innerText = time.toFixed(2); }, 10); }
     function restartGame() { prepareGame(rows, cols, mines, currentMode); }
 
     async function saveRecord() {
         const nick = document.getElementById('nickname').value || "익명";
-        const uid = getCookie('UID');
         const btn = document.getElementById('save-btn');
         btn.disabled = true; btn.innerText = "저장 중...";
         try {
-            await fetch(GAS_API_URL, { 
-                method: "POST", 
-                mode: "no-cors", 
-                body: JSON.stringify({ uid: uid, nickname: nick, time: time.toFixed(2), mode: currentMode }) 
-            });
+            await fetch(GAS_API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ nickname: nick, time: time.toFixed(2), mode: currentMode }) });
             alert("저장되었습니다! 랭킹을 확인하세요."); openRanking();
         } catch (err) { alert("저장 중 오류 발생"); btn.disabled = false; btn.innerText = "기록 저장"; }
     }
@@ -371,19 +357,12 @@
             const data = await res.json();
             body.innerHTML = '';
             if (!data || data.length === 0) body.innerHTML = '<tr><td colspan="3">기록 없음</td></tr>';
-            else data.forEach((r, i) => { 
-                // [수정] 랭킹 리스트도 소수점 2자리까지 표시
-                const formattedTime = parseFloat(r.time).toFixed(2);
-                body.innerHTML += `<tr><td>${i+1}</td><td>${r.nick}</td><td>${formattedTime}초</td></tr>`; 
-            });
+            else data.forEach((r, i) => { const formattedTime = parseFloat(r.time).toFixed(2); body.innerHTML += `<tr><td>${i+1}</td><td>${r.nick}</td><td>${formattedTime}초</td></tr>`; });
         } catch (err) { body.innerHTML = '<tr><td colspan="3">데이터 에러</td></tr>'; }
     }
 
     function openRanking() { showScreen('screen-ranking'); loadRankingFromServer(currentMode || '쉬움'); }
-    
-    window.onload = function() {
-        startAdRolling();
-    };
+    window.onload = startAdRolling;
 </script>
 </body>
 </html>
