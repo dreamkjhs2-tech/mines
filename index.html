@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>라플 지뢰찾기 - 결과 공유 버전</title>
+    <title>라플 지뢰찾기 - 공유 팝업 버전</title>
     <style>
         /* 기본 스타일 및 시스템 간섭 차단 */
         body { 
@@ -33,28 +33,21 @@
         }
         button:active { border-color: #808080 #fff #fff #808080; background: #d0d0d0; }
 
-        /* 카카오톡 공유 버튼 전용 스타일 */
+        /* 랭킹 탭 버튼 */
+        .rank-tab-btn { flex: 1; padding: 8px 5px; font-size: 11px !important; margin: 0 !important; }
+        .rank-tab-btn.active { background: #d0d0d0; border-color: #808080 #fff #fff #808080; color: #000080; }
+
+        /* 카카오톡 공유 버튼 */
         .kakao-btn {
-            background: #FEE500 !important;
-            color: #3c1e1e !important;
-            border: 2px solid #FEE500 !important;
-            box-shadow: none !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            background: #FEE500 !important; color: #3c1e1e !important;
+            border: 2px solid #FEE500 !important; box-shadow: none !important;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
         }
 
-        .tip-box {
-            background: #f0f0f0; border: 1px solid #808080; padding: 12px; 
-            margin-bottom: 20px; text-align: left; font-size: 13px; line-height: 1.5;
-        }
+        .tip-box { background: #f0f0f0; border: 1px solid #808080; padding: 12px; margin-bottom: 20px; text-align: left; font-size: 13px; line-height: 1.5; }
 
-        #game-board { 
-            display: grid; border: 3px inset #ffffff; background-color: #808080; margin: 0 auto; 
-            touch-action: none;
-        }
-        
+        /* 게임 보드: 가로 9칸 고정 */
+        #game-board { display: grid; border: 3px inset #ffffff; background-color: #808080; margin: 0 auto; touch-action: none; }
         .cell { 
             width: 32px; height: 32px; background-color: #c0c0c0; border: 3px solid; 
             border-color: #ffffff #808080 #808080 #ffffff; 
@@ -70,15 +63,13 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; font-size: 12px; }
         th, td { border: 1px solid #808080; padding: 4px; text-align: center; }
         
+        /* 롤링 스토리 광고 배너 (73px 높이) */
         .ad-banner { 
-            width: 320px !important;
-            background: #ffffff; border-radius: 12px; padding: 0 15px; 
+            width: 320px !important; background: #ffffff; border-radius: 12px; padding: 0 15px; 
             display: flex; justify-content: space-between; align-items: center; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-decoration: none; border: 2.5px solid #00ce7c;
-            position: relative; z-index: 5; height: 73px;
-            overflow: hidden; box-sizing: border-box; margin-bottom: 10px;
+            position: relative; z-index: 5; height: 73px; overflow: hidden; box-sizing: border-box; margin-bottom: 10px;
         }
-        
         .ad-content { flex: 1; position: relative; height: 100%; overflow: hidden; }
         .ad-rolling-wrapper { position: absolute; width: 100%; top: 0; transition: top 0.6s cubic-bezier(0.45, 0.05, 0.55, 0.95); }
         .ad-text-item { height: 73px; display: flex; align-items: center; font-size: 16px; font-weight: bold; color: #333; text-align: left; white-space: nowrap; }
@@ -99,20 +90,15 @@
         <p>숨겨진 지뢰를 피해<br>모든 안전한 칸을 열어야 합니다.<br><br>칸의 <b>숫자</b>는 주변 8개 칸에 있는<br>지뢰의 총 개수를 의미합니다.</p>
         <button onclick="showScreen('screen-tutorial-2')">다음으로</button>
     </div>
-
     <div id="screen-tutorial-2" class="window hidden">
         <h1>🕹️ 조작 방법 (2/3)</h1>
-        <p><b>[칸 열기]</b><br>칸을 가볍게 한 번 터치하세요.<br><br><b>[깃발 꽂기]</b><br>지뢰가 확실한 곳은<br>칸을 <b>꾹~ 길게</b> 눌러주세요.</p>
+        <p><b>[칸 열기]</b> 터치<br><b>[깃발 꽂기]</b> 길게 누르기</p>
         <button onclick="showScreen('screen-tutorial-3')">다음으로</button>
     </div>
-
     <div id="screen-tutorial-3" class="window hidden">
         <h1>🏆 미션 성공 (3/3)</h1>
-        <p>지뢰를 밟지 않고<br>모든 안전한 칸을 찾아내면 성공!<br><br>빠르게 성공할수록<br>높은 명예의 전당에 오릅니다.</p>
-        <div class="tip-box">
-            <b>💡 지뢰찾기 TIP:</b><br>
-            가장 끝 <b>모서리</b>부터 시작해 보세요! 구석에서 시작하면 지뢰를 피할 확률이 훨씬 높아집니다.
-        </div>
+        <p>지뢰를 밟지 않고<br>모든 안전한 칸을 찾아내면 성공!</p>
+        <div class="tip-box"><b>💡 지뢰찾기 TIP:</b><br>가장 끝 모서리부터 시작해 보세요! 구석에서 시작하면 지뢰를 피할 확률이 높아집니다.</div>
         <button onclick="showScreen('screen-difficulty')">난이도 선택하기</button>
     </div>
 
@@ -150,15 +136,22 @@
         <p>기록: <span id="final-time">0.00</span>초</p>
         <input type="text" id="nickname" placeholder="닉네임 입력" style="padding:10px; width:80%; margin-bottom:10px; border:2px inset #fff; text-align: center;">
         <button id="save-btn" onclick="saveRecord()">기록 저장</button>
-        <button id="share-btn" class="kakao-btn" onclick="shareToKakao()">나의 결과 공유하기</button>
+    </div>
+
+    <div id="screen-share-result" class="window hidden">
+        <h1>✅ 저장 완료!</h1>
+        <p>당신의 멋진 기록을<br>동료들에게 자랑해보세요!</p>
+        <button class="kakao-btn" onclick="shareToKakao()">카카오톡으로 결과 공유</button>
+        <button onclick="openRanking()">랭킹 보러가기</button>
+        <button onclick="showScreen('screen-intro')" style="margin-top: 10px;">메인으로</button>
     </div>
 
     <div id="screen-ranking" class="window hidden">
         <h1>🏆 명예의 전당</h1>
         <div style="display:flex; gap:5px; margin-bottom:10px;">
-            <button onclick="loadRankingFromServer('쉬움')" style="font-size:11px;">쉬움</button>
-            <button onclick="loadRankingFromServer('보통')" style="font-size:11px;">보통</button>
-            <button onclick="loadRankingFromServer('어려움')" style="font-size:11px;">어려움</button>
+            <button id="rank-tab-쉬움" class="rank-tab-btn" onclick="loadRankingFromServer('쉬움')">쉬움</button>
+            <button id="rank-tab-보통" class="rank-tab-btn" onclick="loadRankingFromServer('보통')">보통</button>
+            <button id="rank-tab-어려움" class="rank-tab-btn" onclick="loadRankingFromServer('어려움')">어려움</button>
         </div>
         <table>
             <thead><tr><th>순위</th><th>닉네임</th><th>기록</th></tr></thead>
@@ -182,33 +175,27 @@
 <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwbrf6Jf9gsE-btNXi7WLV8FsIRioETXU7ZV3gKZt_Bqto649RgUV0OOgi8lz1xcW15/exec";
     let rows, cols, mines, currentMode, timerInterval, time, boardData, revealedCount, gameOver, startTime;
-
-    let currentAdSlide = 0;
-    const totalAdSlides = 3;
+    let lastNick = ""; // 공유를 위해 닉네임 저장
 
     function startAdRolling() {
         const wrapper = document.getElementById('ad-wrapper');
         const slideHeight = 73; 
+        let currentAdSlide = 0;
         setInterval(() => {
             currentAdSlide++;
             wrapper.style.transition = "top 0.6s cubic-bezier(0.45, 0.05, 0.55, 0.95)";
             wrapper.style.top = `-${currentAdSlide * slideHeight}px`;
-            if (currentAdSlide === totalAdSlides) {
-                setTimeout(() => {
-                    wrapper.style.transition = "none";
-                    currentAdSlide = 0;
-                    wrapper.style.top = "0px";
-                }, 600);
+            if (currentAdSlide === 3) {
+                setTimeout(() => { wrapper.style.transition = "none"; currentAdSlide = 0; wrapper.style.top = "0px"; }, 600);
             }
         }, 3000); 
     }
 
-    // [신규] 카카오톡 결과 공유 로직
+    // [핵심] 카카오톡 결과 공유 로직 (Web Share API 최적화)
     async function shareToKakao() {
         const finalTime = document.getElementById('final-time').innerText;
-        const nick = document.getElementById('nickname').value || "익명";
         const shareLink = "https://m.lifeplanet.co.kr:444/common/cm/CM01000S.dev";
-        const shareText = `[라플 지뢰찾기] ${nick}님이 ${currentMode} 모드를 ${finalTime}초 만에 클리어했습니다! 당신의 뇌 섹시함을 보여주세요.`;
+        const shareText = `[라플 지뢰찾기] ${lastNick}님이 ${currentMode} 모드를 ${finalTime}초 만에 클리어했습니다! 당신도 도전해보세요.`;
 
         if (navigator.share) {
             try {
@@ -218,26 +205,23 @@
                     url: shareLink,
                 });
             } catch (err) {
-                console.log('공유 취소 또는 에러:', err);
+                console.log('공유 취소 또는 에러');
             }
         } else {
-            // Web Share API를 지원하지 않는 브라우저(데스크톱 등) 대응
-            alert("모바일 기기에서 카카오톡 공유가 가능합니다.\n\n결과: " + finalTime + "초");
+            // PC 또는 미지원 브라우저인 경우 클립보드 복사 유도
+            const tempInput = document.createElement("input");
+            document.body.appendChild(tempInput);
+            tempInput.value = shareText + " " + shareLink;
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            alert("공유 내용이 복사되었습니다! 카톡창에 붙여넣어 자랑하세요.\n\n결과: " + finalTime + "초");
         }
-    }
-
-    function getCookie(name) {
-        let value = "; " + document.cookie;
-        let parts = value.split("; " + name + "=");
-        if (parts.length === 2) return parts.pop().split(";").shift();
-        return "GUEST_USER"; 
     }
 
     function showScreen(screenId) {
         document.querySelectorAll('.window').forEach(w => w.classList.add('hidden'));
-        const target = document.getElementById(screenId);
-        target.classList.remove('hidden');
-
+        document.getElementById(screenId).classList.remove('hidden');
         if (screenId === 'screen-success') {
             document.getElementById('nickname').value = ""; 
             const btn = document.getElementById('save-btn');
@@ -252,8 +236,7 @@
         const updateUI = (n) => { document.getElementById('count-num').innerText = n; document.getElementById('count-text').innerText = n; };
         updateUI(count);
         const cdInterval = setInterval(() => {
-            count--;
-            if (count > 0) updateUI(count);
+            count--; if (count > 0) updateUI(count);
             else { clearInterval(cdInterval); startGame(); }
         }, 1000);
     }
@@ -263,8 +246,7 @@
         gameOver = false; revealedCount = 0; time = 0;
         document.getElementById('timer').innerText = "0.00";
         document.getElementById('mine-count').innerText = mines;
-        createBoard();
-        startTimer();
+        createBoard(); startTimer();
     }
 
     function createBoard() {
@@ -272,13 +254,11 @@
         board.style.gridTemplateColumns = `repeat(${cols}, 32px)`;
         board.innerHTML = '';
         boardData = Array.from({ length: rows }, () => Array.from({ length: cols }, () => ({ isMine: false, isOpen: false, count: 0 })));
-        
         let planted = 0;
         while (planted < mines) {
             let rx = Math.floor(Math.random() * rows), ry = Math.floor(Math.random() * cols);
             if (!boardData[rx][ry].isMine) { boardData[rx][ry].isMine = true; planted++; }
         }
-
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
                 if (boardData[i][j].isMine) continue;
@@ -291,7 +271,6 @@
                 boardData[i][j].count = cnt;
             }
         }
-
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
                 const cell = document.createElement('div');
@@ -305,8 +284,7 @@
                 }, { passive: true });
                 cell.addEventListener('touchend', (e) => {
                     if (t) clearTimeout(t);
-                    e.preventDefault(); 
-                    if (!long) clickCell(i, j);
+                    e.preventDefault(); if (!long) clickCell(i, j);
                 }, false);
                 cell.addEventListener('contextmenu', (e) => { e.preventDefault(); if (e.pointerType === 'mouse') toggleFlag(cell, i, j); });
                 board.appendChild(cell);
@@ -344,18 +322,24 @@
     function startTimer() { startTime = Date.now(); timerInterval = setInterval(() => { time = (Date.now() - startTime) / 1000; document.getElementById('timer').innerText = time.toFixed(2); }, 10); }
     function restartGame() { prepareGame(rows, cols, mines, currentMode); }
 
+    // [수정] 저장 성공 시 공유 화면(screen-share-result)으로 이동
     async function saveRecord() {
         const nick = document.getElementById('nickname').value || "익명";
+        lastNick = nick;
         const btn = document.getElementById('save-btn');
         btn.disabled = true; btn.innerText = "저장 중...";
         try {
             await fetch(GAS_API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ nickname: nick, time: time.toFixed(2), mode: currentMode }) });
-            alert("기록이 성공적으로 저장되었습니다!"); 
-            openRanking();
+            // 저장 성공 시 로직
+            showScreen('screen-share-result');
         } catch (err) { alert("저장 중 오류 발생"); btn.disabled = false; btn.innerText = "기록 저장"; }
     }
 
     async function loadRankingFromServer(mode) {
+        document.querySelectorAll('.rank-tab-btn').forEach(btn => btn.classList.remove('active'));
+        const activeBtn = document.getElementById(`rank-tab-${mode}`);
+        if (activeBtn) activeBtn.classList.add('active');
+
         const body = document.getElementById('rank-body');
         body.innerHTML = '<tr><td colspan="3">불러오는 중...</td></tr>';
         try {
