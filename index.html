@@ -3,42 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>라플 지뢰찾기 - 가로 고정 버전</title>
+    <title>라플 지뢰찾기 - 튜토리얼 복구 버전</title>
     <style>
         /* 기본 스타일 및 시스템 간섭 차단 */
         body { 
             background-color: #008080; display: flex; flex-direction: column; justify-content: center; align-items: center; 
             min-height: 100vh; margin: 0; font-family: 'Tahoma', sans-serif;
             -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
-            touch-action: none; overflow-y: auto; /* 세로가 길어질 수 있으므로 허용 */
+            touch-action: none; overflow-y: auto;
         }
         
-        /* [수정] 모든 창의 가로 폭을 320px로 절대 고정 */
+        /* 모든 창의 가로 폭을 320px로 절대 고정 */
         .window { 
             background-color: #c0c0c0; border: 3px solid; border-color: #ffffff #808080 #808080 #ffffff; 
-            padding: 15px; text-align: center; box-shadow: 5px 5px 15px rgba(0,0,0,0.3); 
-            width: 320px !important; /* 가로 고정 */
+            padding: 20px; text-align: center; box-shadow: 5px 5px 15px rgba(0,0,0,0.3); 
+            width: 320px !important;
             margin: 10px 0; box-sizing: border-box; z-index: 10;
         }
         
         .hidden { display: none !important; }
-        h1 { font-size: 19px; margin: 0 0 12px 0; color: #000080; }
-        h2 { font-size: 17px; margin: 0 0 10px 0; color: #000080; }
-        p { font-size: 13px; margin-bottom: 15px; line-height: 1.5; word-break: keep-all; }
+        h1 { font-size: 20px; margin: 0 0 15px 0; color: #000080; }
+        h2 { font-size: 18px; margin: 0 0 10px 0; color: #000080; }
+        /* 튜토리얼 텍스트 가독성을 위해 line-height 조정 */
+        p { font-size: 14px; margin-bottom: 20px; line-height: 1.6; word-break: keep-all; }
         
         button { 
-            display: block; width: 100%; padding: 10px; margin: 6px 0; 
+            display: block; width: 100%; padding: 10px; margin: 8px 0; 
             background: #c0c0c0; border: 2px solid; border-color: #fff #808080 #808080 #fff;
             font-weight: bold; cursor: pointer; font-size: 14px;
         }
         button:active { border-color: #808080 #fff #fff #808080; background: #d0d0d0; }
 
+        /* 팁 박스 스타일 복구 */
         .tip-box {
-            background: #f0f0f0; border: 1px solid #808080; padding: 10px; 
-            margin-bottom: 15px; text-align: left; font-size: 12px; line-height: 1.4;
+            background: #f0f0f0; border: 1px solid #808080; padding: 12px; 
+            margin-bottom: 20px; text-align: left; font-size: 13px; line-height: 1.5;
         }
 
-        /* [수정] 게임 보드: 가로는 9칸으로 고정하여 320px 창에 맞춤 */
+        /* 게임 보드: 가로 9칸 고정 */
         #game-board { 
             display: grid; border: 3px inset #ffffff; background-color: #808080; margin: 0 auto; 
             touch-action: none;
@@ -59,7 +61,7 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; font-size: 12px; }
         th, td { border: 1px solid #808080; padding: 4px; text-align: center; }
         
-        /* [수정] 광고 배너: 가로 320px 고정 */
+        /* 롤링 스토리 광고 배너 (73px 높이, 중앙 정렬) */
         .ad-banner { 
             width: 320px !important;
             background: #ffffff; border-radius: 12px; padding: 0 15px; 
@@ -86,19 +88,22 @@
 
     <div id="screen-tutorial-1" class="window hidden">
         <h1>🎮 게임 규칙 (1/3)</h1>
-        <p>숨겨진 지뢰를 피해 모든 안전한 칸을 열어야 합니다.<br>칸의 <b>숫자</b>는 주변 지뢰 개수입니다.</p>
+        <p>숨겨진 지뢰를 피해<br>모든 안전한 칸을 열어야 합니다.<br><br>칸의 <b>숫자</b>는 주변 8개 칸에 있는<br>지뢰의 총 개수를 의미합니다.</p>
         <button onclick="showScreen('screen-tutorial-2')">다음으로</button>
     </div>
+
     <div id="screen-tutorial-2" class="window hidden">
         <h1>🕹️ 조작 방법 (2/3)</h1>
-        <p><b>[열기]</b> 터치<br><b>[깃발]</b> 꾹~ 길게 누르기</p>
+        <p><b>[칸 열기]</b><br>칸을 가볍게 한 번 터치하세요.<br><br><b>[깃발 꽂기]</b><br>지뢰가 확실한 곳은<br>칸을 <b>꾹~ 길게</b> 눌러주세요.</p>
         <button onclick="showScreen('screen-tutorial-3')">다음으로</button>
     </div>
+
     <div id="screen-tutorial-3" class="window hidden">
         <h1>🏆 미션 성공 (3/3)</h1>
+        <p>지뢰를 밟지 않고<br>모든 안전한 칸을 찾아내면 성공!<br><br>빠르게 성공할수록<br>높은 명예의 전당에 오릅니다.</p>
         <div class="tip-box">
             <b>💡 지뢰찾기 TIP:</b><br>
-            가장 끝 <b>모서리</b>부터 시작해 보세요!
+            가장 끝 <b>모서리</b>부터 시작해 보세요! 구석에서 시작하면 지뢰를 피할 확률이 훨씬 높아집니다.
         </div>
         <button onclick="showScreen('screen-difficulty')">난이도 선택하기</button>
     </div>
@@ -141,7 +146,15 @@
 
     <div id="screen-ranking" class="window hidden">
         <h1>🏆 명예의 전당</h1>
-        <tbody id="rank-body"></tbody>
+        <div style="display:flex; gap:5px; margin-bottom:10px;">
+            <button onclick="loadRankingFromServer('쉬움')" style="font-size:11px;">쉬움</button>
+            <button onclick="loadRankingFromServer('보통')" style="font-size:11px;">보통</button>
+            <button onclick="loadRankingFromServer('어려움')" style="font-size:11px;">어려움</button>
+        </div>
+        <table>
+            <thead><tr><th>순위</th><th>닉네임</th><th>기록</th></tr></thead>
+            <tbody id="rank-body"></tbody>
+        </table>
         <button onclick="showScreen('screen-intro')" style="margin-top: 15px;">메인으로</button>
     </div>
 
