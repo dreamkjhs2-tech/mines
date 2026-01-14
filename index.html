@@ -40,7 +40,7 @@
 
         .tip-box { background: #f0f0f0; border: 1px solid #808080; padding: 12px; margin-bottom: 20px; text-align: left; font-size: 13px; line-height: 1.5; }
 
-        /* 4. 지뢰판 설정: 가로 9칸 고정 */
+        /* 4. 지뢰판 설정: 가로 9칸 고정 (32px * 9 = 288px) */
         #game-board { display: grid; border: 3px inset #ffffff; background-color: #808080; margin: 0 auto; touch-action: none; }
         .cell { 
             width: 32px; height: 32px; background-color: #c0c0c0; border: 3px solid; 
@@ -90,16 +90,19 @@
 
     <div id="screen-tutorial-3" class="window hidden">
         <h1>🏆 미션 성공 (3/3)</h1>
-        <p>지뢰를 밟지 않고<br>모든 안전한 칸을 찾아내면 성공!</p>
-        <div class="tip-box"><b>💡 지뢰찾기 TIP:</b><br>가장 끝 모서리부터 시작해 보세요! 구석에서 시작하면 지뢰를 피할 확률이 높아집니다.</div>
+        <p>지뢰를 밟지 않고<br>모든 안전한 칸을 찾아내면 성공!<br><br>빠르게 성공할수록<br>높은 명예의 전당에 오릅니다.</p>
+        <div class="tip-box">
+            <b>💡 지뢰찾기 TIP:</b><br>
+            가장 끝 <b>모서리</b>부터 시작해 보세요! 구석에서 시작하면 지뢰를 피할 확률이 훨씬 높아집니다.
+        </div>
         <button onclick="showScreen('screen-difficulty')">난이도 선택하기</button>
     </div>
 
     <div id="screen-difficulty" class="window hidden">
         <h1>난이도를 선택하세요</h1>
         <button onclick="prepareGame(9, 9, 10, '쉬움')">쉬움 (9x9)</button>
-        <button onclick="prepareGame(15, 9, 20, '보통')">보통 (9x15)</button>
-        <button onclick="prepareGame(22, 9, 35, '어려움')">어려움 (9x22)</button>
+        <button onclick="prepareGame(13, 9, 20, '보통')">보통 (9x13)</button>
+        <button onclick="prepareGame(16, 9, 35, '어려움')">어려움 (9x16)</button>
         <button onclick="showScreen('screen-intro')" style="margin-top: 15px;">뒤로가기</button>
     </div>
 
@@ -120,7 +123,7 @@
     <div id="screen-fail" class="window hidden">
         <h1>💥 콰광!</h1>
         <button onclick="restartGame()">다시 시작</button>
-        <button onclick="showScreen('screen-intro')">게임 종료</button>
+        <button onclick="showScreen('screen-intro')">처음으로</button>
     </div>
 
     <div id="screen-success" class="window hidden">
@@ -165,14 +168,13 @@
     </a>
 
 <script>
-    // [중요] 카카오 JavaScript 키를 여기에 입력하세요!
+    // [중요] 카카오 JavaScript 키를 입력하세요!
     const KAKAO_APP_KEY = 'YOUR_KAKAO_KEY_HERE'; 
     if (typeof Kakao !== 'undefined' && !Kakao.isInitialized()) { Kakao.init(KAKAO_APP_KEY); }
 
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwbrf6Jf9gsE-btNXi7WLV8FsIRioETXU7ZV3gKZt_Bqto649RgUV0OOgi8lz1xcW15/exec";
     let rows, cols, mines, currentMode, timerInterval, time, boardData, revealedCount, gameOver, startTime, lastNick = "";
 
-    // 하단 광고 롤링 (3초)
     function startAdRolling() {
         const wrapper = document.getElementById('ad-wrapper');
         let currentAdSlide = 0;
@@ -186,7 +188,6 @@
         }, 3000); 
     }
 
-    // 카카오톡 친구 선택 공유 함수
     function shareToKakao() {
         const finalTime = document.getElementById('final-time').innerText;
         const shareLink = "https://m.lifeplanet.co.kr:444/common/cm/CM01000S.dev";
