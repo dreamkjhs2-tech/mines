@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>라플 지뢰찾기 - 튜토리얼 복구 버전</title>
+    <title>라플 지뢰찾기 - 결과 공유 버전</title>
     <style>
         /* 기본 스타일 및 시스템 간섭 차단 */
         body { 
@@ -24,7 +24,6 @@
         .hidden { display: none !important; }
         h1 { font-size: 20px; margin: 0 0 15px 0; color: #000080; }
         h2 { font-size: 18px; margin: 0 0 10px 0; color: #000080; }
-        /* 튜토리얼 텍스트 가독성을 위해 line-height 조정 */
         p { font-size: 14px; margin-bottom: 20px; line-height: 1.6; word-break: keep-all; }
         
         button { 
@@ -34,13 +33,23 @@
         }
         button:active { border-color: #808080 #fff #fff #808080; background: #d0d0d0; }
 
-        /* 팁 박스 스타일 복구 */
+        /* 카카오톡 공유 버튼 전용 스타일 */
+        .kakao-btn {
+            background: #FEE500 !important;
+            color: #3c1e1e !important;
+            border: 2px solid #FEE500 !important;
+            box-shadow: none !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
         .tip-box {
             background: #f0f0f0; border: 1px solid #808080; padding: 12px; 
             margin-bottom: 20px; text-align: left; font-size: 13px; line-height: 1.5;
         }
 
-        /* 게임 보드: 가로 9칸 고정 */
         #game-board { 
             display: grid; border: 3px inset #ffffff; background-color: #808080; margin: 0 auto; 
             touch-action: none;
@@ -61,7 +70,6 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; font-size: 12px; }
         th, td { border: 1px solid #808080; padding: 4px; text-align: center; }
         
-        /* 롤링 스토리 광고 배너 (73px 높이, 중앙 정렬) */
         .ad-banner { 
             width: 320px !important;
             background: #ffffff; border-radius: 12px; padding: 0 15px; 
@@ -142,6 +150,7 @@
         <p>기록: <span id="final-time">0.00</span>초</p>
         <input type="text" id="nickname" placeholder="닉네임 입력" style="padding:10px; width:80%; margin-bottom:10px; border:2px inset #fff; text-align: center;">
         <button id="save-btn" onclick="saveRecord()">기록 저장</button>
+        <button id="share-btn" class="kakao-btn" onclick="shareToKakao()">나의 결과 공유하기</button>
     </div>
 
     <div id="screen-ranking" class="window hidden">
@@ -192,6 +201,36 @@
                 }, 600);
             }
         }, 3000); 
+    }
+
+    // [신규] 카카오톡 결과 공유 로직
+    async function shareToKakao() {
+        const finalTime = document.getElementById('final-time').innerText;
+        const nick = document.getElementById('nickname').value || "익명";
+        const shareLink = "https://m.lifeplanet.co.kr:444/common/cm/CM01000S.dev";
+        const shareText = `[라플 지뢰찾기] ${nick}님이 ${currentMode} 모드를 ${finalTime}초 만에 클리어했습니다! 당신의 뇌 섹시함을 보여주세요.`;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: '라플 지뢰찾기 결과 공유',
+                    text: shareText,
+                    url: shareLink,
+                });
+            } catch (err) {
+                console.log('공유 취소 또는 에러:', err);
+            }
+        } else {
+            // Web Share API를 지원하지 않는 브라우저(데스크톱 등) 대응
+            alert("모바일 기기에서 카카오톡 공유가 가능합니다.\n\n결과: " + finalTime + "초");
+        }
+    }
+
+    function getCookie(name) {
+        let value = "; " + document.cookie;
+        let parts = value.split("; " + name + "=");
+        if (parts.length === 2) return parts.pop().split(";").shift();
+        return "GUEST_USER"; 
     }
 
     function showScreen(screenId) {
@@ -311,7 +350,8 @@
         btn.disabled = true; btn.innerText = "저장 중...";
         try {
             await fetch(GAS_API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ nickname: nick, time: time.toFixed(2), mode: currentMode }) });
-            alert("저장되었습니다! 랭킹을 확인하세요."); openRanking();
+            alert("기록이 성공적으로 저장되었습니다!"); 
+            openRanking();
         } catch (err) { alert("저장 중 오류 발생"); btn.disabled = false; btn.innerText = "기록 저장"; }
     }
 
